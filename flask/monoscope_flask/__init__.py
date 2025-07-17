@@ -8,7 +8,7 @@ from opentelemetry.trace import get_tracer
 
 observe_request = observe_request
 report_error = report_error
-class APIToolkit:
+class Monoscope:
     def __init__(self, redact_headers=["Authorization", "Cookie"], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
         self.debug = debug
         self.redact_headers = redact_headers
@@ -33,7 +33,7 @@ class APIToolkit:
         tracer = get_tracer(self.service_name or "apitoolkit-http-tracer")
         span = tracer.start_span("apitoolkit-http-span")
         if self.debug:
-            print("APIToolkit: beforeRequest")
+            print("Monoscope: beforeRequest")
         request_method = request.method
         raw_url = request.full_path
         url_path = request.url_rule.rule if request.url_rule is not None else request.full_path
@@ -68,7 +68,7 @@ class APIToolkit:
 
     def afterRequest(self, response):
         if self.debug:
-            print("APIToolkit: afterRequest")
+            print("Monoscope: afterRequest")
 
         apitoolkit_request_data = g.get("apitoolkit_request_data", {})
         status_code = response.status_code

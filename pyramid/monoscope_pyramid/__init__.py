@@ -11,21 +11,21 @@ report_error = report_error
 
 OPTIONAL_SETTINGS = (
     # var in class, environment name, type, default value
-    ('debug', 'APITOOLKIT_DEBUG', bool, False),
+    ('debug', 'MONOSCOPE_DEBUG', bool, False),
     ('service_name', 'SERVICE_NAME', str, None),
-    ('capture_request_body', 'APITOOLKIT_CAPTURE_REQUEST_BODY', bool, False),
-    ('capture_response_body', 'APITOOLKIT_CAPTURE_RESPONSE_BODY', bool, False),
-    ('redact_headers', 'APITOOLKIT_REDACT_HEADERS', list, []),
-    ('redact_request_body', 'APITOOLKIT_REDACT_REQUEST_BODY', list, []),
-    ('redact_response_body', 'APITOOLKIT_REDACT_RESPONSE_BODY', list, []),
-    ('routes_whitelist', 'APITOOLKIT_ROUTES_WHITELIST', list, []),
-    ('ignore_http_codes', 'APITOOLKIT_IGNORE_HTTP_CODES', list, []),
-    ('service_version', 'APITOOLKIT_SERVICE_VERSION', str, None),
-    ('tags', 'APITOOLKIT_TAGS', list, []),
+    ('capture_request_body', 'MONOSCOPE_CAPTURE_REQUEST_BODY', bool, False),
+    ('capture_response_body', 'MONOSCOPE_CAPTURE_RESPONSE_BODY', bool, False),
+    ('redact_headers', 'MONOSCOPE_REDACT_HEADERS', list, []),
+    ('redact_request_body', 'MONOSCOPE_REDACT_REQUEST_BODY', list, []),
+    ('redact_response_body', 'MONOSCOPE_REDACT_RESPONSE_BODY', list, []),
+    ('routes_whitelist', 'MONOSCOPE_ROUTES_WHITELIST', list, []),
+    ('ignore_http_codes', 'MONOSCOPE_IGNORE_HTTP_CODES', list, []),
+    ('service_version', 'MONOSCOPE_SERVICE_VERSION', str, None),
+    ('tags', 'MONOSCOPE_TAGS', list, []),
 )
 
 
-class APIToolkit(object):
+class Monoscope(object):
     def __init__(self, handler, registry):
         self.get_response = handler
         for var_name, env_id, _type, default in OPTIONAL_SETTINGS:
@@ -62,7 +62,7 @@ class APIToolkit(object):
         tracer = get_tracer(self.service_name or "apitoolkit-pyramid-tracer")
         span = tracer.start_span("apitoolkit-http-span")
         if self.debug:
-            print("APIToolkit: making request")
+            print("Monoscope: making request")
 
         request.apitoolkit_message_id = str(uuid.uuid4())
         request.apitoolkit_errors = []
@@ -81,7 +81,7 @@ class APIToolkit(object):
             return response
 
         if self.debug:
-            print("APIToolkit: after request")
+            print("Monoscope: after request")
         try:
             request_method = request.method
             raw_url = request.url

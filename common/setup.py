@@ -23,5 +23,5 @@ setup(
     ],
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/apitoolkit/apitoolkit-python",
+    url="https://github.com/monoscope-tech/apitoolkit-python",
 )

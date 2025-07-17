@@ -20,7 +20,7 @@ async def get_body(request: Request) -> bytes:
 observe_request = observe_request
 report_error = report_error
 
-class APIToolkit:
+class Monoscope:
     def __init__(self, debug=False,
                  redact_headers=['authorization', 'cookie'],
                  redact_request_body=[],
@@ -37,7 +37,7 @@ class APIToolkit:
         self.service_name = service_name
         self.debug = False
         if debug:
-            print("APIToolkit: initialize")
+            print("Monoscope initialize")
         self.debug = debug
         self.redact_headers = redact_headers
         self.redact_request_body = redact_request_body
@@ -58,7 +58,7 @@ class APIToolkit:
         tracer = get_tracer(self.service_name or "apitoolkit-http-tracer")
         span = tracer.start_span("apitoolkit-http-span")
         if self.debug:
-            print("APIToolkit: middleware")
+            print("Monoscope middleware")
         request.state.apitoolkit_message_id = str(uuid.uuid4())
         request.state.apitoolkit_errors = []
         request.state.apitoolkit_client = self
@@ -115,4 +115,4 @@ class APIToolkit:
               )
             else:
                 if self.debug:
-                    print("APIToolkit: metadata is not set restart server to fix")
+                    print("Monoscope metadata is not set restart server to fix")

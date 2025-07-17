@@ -1,13 +1,13 @@
 <div align="center">
 
-![APItoolkit's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
-![APItoolkit's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
+![Monoscope's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
+![Monoscope's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
 
 ## Pyramid SDK
 
-[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=pyramid)](https://github.com/topics/apitoolkit-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/apitoolkit-pyramid)](https://pypi.org/project/apitoolkit-pyramid) [![PyPI - Downloads](https://img.shields.io/pypi/dw/apitoolkit-pyramid)](https://pypi.org/project/apitoolkit-pyramid) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/pyramid?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
+[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=pyramid)](https://github.com/topics/apitoolkit-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-pyramid)](https://pypi.org/project/monoscope-pyramid) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-pyramid)](https://pypi.org/project/monoscope-pyramid) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/pyramid?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
 
-APIToolkit pyramid SDK is a middleware that can be used to monitor incoming HTTP requests, errors and outgoing requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies, headers, status code, duration, etc.
+Monoscope pyramid SDK is a middleware that can be used to monitor incoming HTTP requests, errors and outgoing requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies, headers, status code, duration, etc.
 
 </div>
 
@@ -17,7 +17,7 @@ APIToolkit pyramid SDK is a middleware that can be used to monitor incoming HTTP
 
 - [Installation](#installation)
 - [Setup Open Telemetry](#setup-open-telemetry)
-- [Configuration](#apitoolkit-pyramid-configuration)
+- [Configuration](#monoscope-pyramid-configuration)
 - [Contributing and Help](#contributing-and-help)
 - [License](#license)
 
@@ -28,14 +28,14 @@ APIToolkit pyramid SDK is a middleware that can be used to monitor incoming HTTP
 Kindly run the command below to install the apitoolkit pyramid sdks and necessary opentelemetry packages:
 
 ```sh
-pip install apitoolkit-pyramid opentelemetry-distro opentelemetry-exporter-otlp
+pip install monoscope-pyramid opentelemetry-distro opentelemetry-exporter-otlp
 
 opentelemetry-bootstrap -a install
 ```
 
 ## Setup Open Telemetry
 
-Setting up open telemetry allows you to send traces, metrics and logs to the APIToolkit platform.
+Setting up open telemetry allows you to send traces, metrics and logs to the Monoscope platform.
 To setup open telemetry, you need to configure the following environment variables:
 
 ```sh
@@ -51,7 +51,7 @@ Then run the command below to start your server with opentelemetry instrumented:
 opentelemetry-instrument python3 myapp.py
 ```
 
-## APIToolkit Pyramid Configuration
+## Monoscope Pyramid Configuration
 
 After setting up open telemetry, you can now configure and start the apitoolkit pyramid middleware.
 
@@ -70,13 +70,13 @@ def home(request):
 
 if __name__ == '__main__':
     setting = {
-      "APITOOLKIT_SERVICE_NAME": "my-service",
-      "APITOOLKIT_CAPTURE_REQUEST_BODY": True,
-      "APITOOLKIT_CAPTURE_RESPONSE_BODY": True
+      "MONOSCOPE_SERVICE_NAME": "my-service",
+      "MONOSCOPE_CAPTURE_REQUEST_BODY": True,
+      "MONOSCOPE_CAPTURE_RESPONSE_BODY": True
       }
     with Configurator(settings=setting) as config:
         # Initialize APItoolkit
-        config.add_tween("apitoolkit_pyramid.APIToolkit")
+        config.add_tween("monoscope_pyramid.Monoscope")
         config.add_route('home', '/')
         config.scan()
         app = config.make_wsgi_app()

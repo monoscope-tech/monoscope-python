@@ -44,7 +44,7 @@ class MonoscopeMiddleware:
         tracer = get_tracer(self.config['service_name'] or "apitoolkit-http-tracer")
         span = tracer.start_span("apitoolkit-http-span")
         if self.debug:
-            print("APIToolkit: making request")
+            print("Monoscope: making request")
         request_method = request.method
         raw_url = request.get_full_path()
         request_body = None
@@ -63,7 +63,7 @@ class MonoscopeMiddleware:
         response = self.get_response(request)
 
         if self.debug:
-            print("APIToolkit: after request")
+            print("Monoscope: after request")
         try:
             url_path = request.resolver_match.route if request.resolver_match is not None else None
             path_params = request.resolver_match.kwargs if request.resolver_match is not None else {}
