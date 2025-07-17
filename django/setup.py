@@ -4,14 +4,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="apitoolkit-django",
+    name="monoscope-django",
     version='2.0.1',
     packages=find_packages(),
-    description='A Django SDK for Apitoolkit integration',
+    description='A Django SDK for Monoscope integration',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author_email='hello@apitoolkit.io',
-    author='APIToolkit',
+    author='monoscope',
     install_requires=[
         'Django',
         'apitoolkit-common',

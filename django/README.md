@@ -1,11 +1,11 @@
 <div align="center">
 
-![APItoolkit's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
-![APItoolkit's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
+![Monoscope's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
+![Monoscope's Logo](https://github.com/apitoolkit/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
 
 ## Django SDK
 
-[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=django)](https://github.com/topics/apitoolkit-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/apitoolkit-django)](https://pypi.org/project/apitoolkit-django) [![PyPI - Downloads](https://img.shields.io/pypi/dw/apitoolkit-django)](https://pypi.org/project/apitoolkit-django) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/django?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
+[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=django)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-django)](https://pypi.org/project/monoscope-django) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-django)](https://pypi.org/project/monoscope-django) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/django?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
 
 APIToolkit Django SDK is a middleware that can be used to monitor HTTP requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies errors and outgoing requests.
 
@@ -17,7 +17,7 @@ APIToolkit Django SDK is a middleware that can be used to monitor HTTP requests.
 
 - [Installation](#installation)
 - [Setup Open Telemetry](#setup-open-telemetry)
-- [Configuration](#apitoolkit-django-configuration)
+- [Configuration](#monoscope-django-configuration)
 - [Contributing and Help](#contributing-and-help)
 - [License](#license)
 
@@ -28,7 +28,7 @@ APIToolkit Django SDK is a middleware that can be used to monitor HTTP requests.
 Kindly run the command below to install the apitoolkit django sdks and necessary opentelemetry packages:
 
 ```sh
-pip install apitoolkit-django opentelemetry-distro opentelemetry-exporter-otlp
+pip install monoscope-django opentelemetry-distro opentelemetry-exporter-otlp
 # then install the bootstrap script
 opentelemetry-bootstrap -a install
 ```
@@ -52,10 +52,10 @@ Then run the command below to start your server with opentelemetry instrumented:
 opentelemetry-instrument python3 manage.py runserver --noreload
 ```
 
-## APItoolkit Django Configuration
+## Monoscope Django Configuration
 
 After setting up open telemetry, you can now configure the apitoolkit django middleware.
-By adding the following APItoolkit variables to your Django settings (`settings.py`) file:
+By adding the following Monoscope variables to your Django settings (`settings.py`) file:
 
 ```python
 from pathlib import Path
@@ -67,9 +67,9 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-APITOOLKIT_SERVICE_NAME= "my-service"
-APITOOLKIT_CAPTURE_REQUEST_BODY = True
-APITOOLKIT_CAPTURE_RESPONSE_BODY = True
+MONOSCOPE_SERVICE_NAME= "my-service"
+MONOSCOPE_CAPTURE_REQUEST_BODY = True
+MONOSCOPE_CAPTURE_RESPONSE_BODY = True
 
 # Application definition
 INSTALLED_APPS = [
@@ -81,11 +81,11 @@ INSTALLED_APPS = [
 ...
 ```
 
-Then add the `apitoolkit_django.APIToolkit` middleware into the `settings.py` middleware list, like so:
+Then add the `monoscope_django.MonoscopeMiddleware` middleware into the `settings.py` middleware list, like so:
 
 ```python
 MIDDLEWARE = [
-    'apitoolkit_django.APIToolkit', # Initialize APItoolkit
+    'monoscope_django.MonoscopeMiddleware', # Initialize APItoolkit
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -110,7 +110,7 @@ To contribute to the development of this SDK or request help from the community 
 
 - Read our [Contributors Guide](https://github.com/apitoolkit/.github/blob/main/CONTRIBUTING.md).
 - Join our community [Discord Server](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme).
-- Create a [new issue](https://github.com/apitoolkit/apitoolkit-django/issues/new/choose) in this repository.
+- Create a [new issue](https://github.com/apitoolkit/monoscope-django/issues/new/choose) in this repository.
 
 ## License
 

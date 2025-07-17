@@ -6,26 +6,26 @@ from common import observe_request, report_error, set_attributes
 
 observe_request = observe_request
 report_error = report_error
-class APIToolkit:
+class MonoscopeMiddleware:
     def __init__(self, get_response):
         redact_headers = getattr(
-            settings, 'APITOOLKIT_REDACT_HEADERS', [])
-        debug = getattr(settings, 'APITOOLKIT_DEBUG', False)
+            settings, 'MONOSCOPE_REDACT_HEADERS', [])
+        debug = getattr(settings, 'MONOSCOPE_DEBUG', False)
         self.debug = debug
         redact_request_body = getattr(
-            settings, 'APITOOLKIT_REDACT_REQUEST_BODY', [])
+            settings, 'MONOSCOPE_REDACT_REQUEST_BODY', [])
         redact_response_body = getattr(
-            settings, 'APITOOLKIT_REDACT_RESPONSE_BODY', [])
+            settings, 'MONOSCOPE_REDACT_RESPONSE_BODY', [])
         self.get_response = get_response
         service_version = getattr(
-            settings, "APITOOLKIT_SERVICE_VERSION", None)
-        tags = getattr(settings, "APITOOLKIT_TAGS", [])
+            settings, "MONOSCOPE_SERVICE_VERSION", None)
+        tags = getattr(settings, "MONOSCOPE_TAGS", [])
         service_name = getattr(
-            settings, "APITOOLKIT_SERVICE_NAME", "")
+            settings, "MONOSCOPE_SERVICE_NAME", "")
         capture_request_body = getattr(
-            settings, "APITOOLKIT_CAPTURE_REQUEST_BODY", False)
+            settings, "MONOSCOPE_CAPTURE_REQUEST_BODY", False)
         capture_response_body = getattr(
-            settings, "APITOOLKIT_CAPTURE_RESPONSE_BODY", False)
+            settings, "MONOSCOPE_CAPTURE_RESPONSE_BODY", False)
         self.config = {"redact_headers": redact_headers,
                        "debug": debug,
                        "redact_request_body": redact_request_body,
