@@ -5,7 +5,7 @@
 
 ## Flask SDK
 
-[![Monoscope SDK](https://img.shields.io/badge/Monoscope-SDK-0068ff?logo=flask)](https://github.com/topics/apitoolkit-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-flask)](https://pypi.org/project/monoscope-flask) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-flask)](https://pypi.org/project/monoscope-flask) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![Monoscope Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/flask?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
+[![Monoscope SDK](https://img.shields.io/badge/Monoscope-SDK-0068ff?logo=flask)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-flask)](https://pypi.org/project/monoscope-flask) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-flask)](https://pypi.org/project/monoscope-flask) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![Monoscope Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/flask?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
 
 APIToolkit Flask SDK is a middleware that can be used to monitor HTTP requests, report errors and monitor outgoing requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies, headers, and more.
 
