@@ -1,11 +1,11 @@
 <div align="center">
 
-![APItoolkit's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
-![APItoolkit's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
+![Monoscope's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-white.svg?raw=true#gh-dark-mode-only)
+![Monoscope's Logo](https://github.com/monoscope-tech/.github/blob/main/images/logo-black.svg?raw=true#gh-light-mode-only)
 
 ## FastAPI SDK
 
-[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=fastapi)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-fastapi)](https://pypi.org/project/monoscope-fastapi) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-fastapi)](https://pypi.org/project/monoscope-fastapi) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/fastapi?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
+[![Monoscope SDK](https://img.shields.io/badge/Monoscope-SDK-0068ff?logo=fastapi)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-fastapi)](https://pypi.org/project/monoscope-fastapi) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-fastapi)](https://pypi.org/project/monoscope-fastapi) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![Monoscope Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/fastapi?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
 
 APIToolkit FastAPI SDK is a middleware that can be used to monitor incoming HTTP requests, errors and outgoing requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies, headers, status code, duration, etc.
 
@@ -38,10 +38,10 @@ Setting up open telemetry allows you to send traces, metrics and logs to the API
 To setup open telemetry, you need to configure the following environment variables:
 
 ```sh
-OTEL_EXPORTER_OTLP_ENDPOINT="http://otelcol.apitoolkit.io:4317"
-OTEL_SERVICE_NAME="my-service" # Specifies the name of the service.
-OTEL_RESOURCE_ATTRIBUTES="at-project-key={ENTER_YOUR_API_KEY_HERE}" # Adds your API KEY to the resource.
-OTEL_EXPORTER_OTLP_PROTOCOL="grpc" #Specifies the protocol to use for the OpenTelemetry exporter.
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://otelcol.apitoolkit.io:4317"
+export OTEL_SERVICE_NAME="my-service" # Specifies the name of the service.
+export OTEL_RESOURCE_ATTRIBUTES="at-project-key={ENTER_YOUR_API_KEY_HERE}" # Adds your API KEY to the resource.
+export OTEL_EXPORTER_OTLP_PROTOCOL="grpc" #Specifies the protocol to use for the OpenTelemetry exporter.
 ```
 
 Then run the command below to start your server with opentelemetry instrumented:
@@ -52,7 +52,7 @@ opentelemetry-instrument python3 myapp.py
 
 ## Monoscope FastAPI Configuration
 
-Next, initialize APItoolkit in your application's entry point (e.g., `main.py`), like so:
+Next, initialize Monoscope in your application's entry point (e.g., `main.py`), like so:
 
 ```python
 from fastapi import FastAPI
@@ -60,7 +60,7 @@ from monoscope_fastapi import Monoscope
 
 app = FastAPI()
 
-# Initialize APItoolkit
+# Initialize Monoscope
 monoscope = Monoscope(service_name="my-service")
 app.middleware('http')(monoscope.middleware)
 
@@ -72,7 +72,7 @@ def read_root():
 
 > [!NOTE]
 >
-> The `{ENTER_YOUR_API_KEY_HERE}` demo string should be replaced with the [API key](https://apitoolkit.io/docs/dashboard/settings-pages/api-keys?utm_source=github-sdks) generated from the APItoolkit dashboard.
+> The `{ENTER_YOUR_API_KEY_HERE}` demo string should be replaced with the [API key](https://apitoolkit.io/docs/dashboard/settings-pages/api-keys?utm_source=github-sdks) generated from the Monoscope dashboard.
 
 <br />
 

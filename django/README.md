@@ -5,7 +5,7 @@
 
 ## Django SDK
 
-[![APItoolkit SDK](https://img.shields.io/badge/APItoolkit-SDK-0068ff?logo=django)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-django)](https://pypi.org/project/monoscope-django) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-django)](https://pypi.org/project/monoscope-django) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![APItoolkit Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/django?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
+[![Monoscope SDK](https://img.shields.io/badge/Monoscope-SDK-0068ff?logo=django)](https://github.com/topics/monoscope-sdk) [![PyPI - Version](https://img.shields.io/pypi/v/monoscope-django)](https://pypi.org/project/monoscope-django) [![PyPI - Downloads](https://img.shields.io/pypi/dw/monoscope-django)](https://pypi.org/project/monoscope-django) [![Join Discord Server](https://img.shields.io/badge/Chat-Discord-7289da)](https://apitoolkit.io/discord?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) [![Monoscope Docs](https://img.shields.io/badge/Read-Docs-0068ff)](https://apitoolkit.io/docs/sdks/python/django?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme)
 
 APIToolkit Django SDK is a middleware that can be used to monitor HTTP requests. It is provides additional functionalities on top of the open telemetry instrumentation which creates a custom span for each request capturing details about the request including request, response bodies errors and outgoing requests.
 
@@ -85,7 +85,7 @@ Then add the `monoscope_django.MonoscopeMiddleware` middleware into the `setting
 
 ```python
 MIDDLEWARE = [
-    'monoscope_django.MonoscopeMiddleware', # Initialize APItoolkit
+    'monoscope_django.MonoscopeMiddleware', # Initialize Monoscope
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -95,7 +95,7 @@ MIDDLEWARE = [
 
 > [!NOTE]
 >
-> The `{ENTER_YOUR_API_KEY_HERE}` demo string should be replaced with the [API key](https://apitoolkit.io/docs/dashboard/settings-pages/api-keys?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) generated from the APItoolkit dashboard.
+> The `{ENTER_YOUR_API_KEY_HERE}` demo string should be replaced with the [API key](https://apitoolkit.io/docs/dashboard/settings-pages/api-keys?utm_campaign=devrel&utm_medium=github&utm_source=sdks_readme) generated from the Monoscope dashboard.
 >
 > The `{YOUR_DJANGO_SERVER_NAME}` demo string should be replaced with the name of your Django server.
 > <br />
