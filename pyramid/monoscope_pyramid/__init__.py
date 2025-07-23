@@ -1,7 +1,7 @@
 import json
 import uuid
 from urllib.parse import urlsplit
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, SpanKind
 from pyramid.request import Request
 from common import observe_request, report_error, set_attributes
 
@@ -59,8 +59,8 @@ class Monoscope(object):
         pass
 
     def __call__(self, request: Request):
-        tracer = get_tracer(self.service_name or "apitoolkit-pyramid-tracer")
-        span = tracer.start_span("apitoolkit-http-span")
+        tracer = get_tracer(self.service_name or "monoscope-tracer")
+        span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         if self.debug:
             print("Monoscope: making request")
 

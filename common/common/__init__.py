@@ -73,8 +73,8 @@ def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_
     def on_request(request):
         nonlocal start_time, req, span
         # create an open telemetry span
-        tracer = get_tracer("apitoolkit-http-tracer")
-        span = tracer.start_span("apitoolkit-http-span")
+        tracer = get_tracer("monoscope-tracer")
+        span = tracer.start_span("monoscope.http", kind=SpanKind.CLIENT)
         req = request
         return request
 

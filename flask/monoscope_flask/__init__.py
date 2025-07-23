@@ -30,8 +30,8 @@ class Monoscope:
         }
 
     def beforeRequest(self):
-        tracer = get_tracer(self.service_name or "apitoolkit-http-tracer")
-        span = tracer.start_span("apitoolkit-http-span")
+        tracer = get_tracer(self.service_name or "monoscope-tracer")
+        span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         if self.debug:
             print("Monoscope: beforeRequest")
         request_method = request.method

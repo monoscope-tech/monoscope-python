@@ -41,8 +41,8 @@ class MonoscopeMiddleware:
         pass
 
     def __call__(self, request):
-        tracer = get_tracer(self.config['service_name'] or "apitoolkit-http-tracer")
-        span = tracer.start_span("apitoolkit-http-span")
+        tracer = get_tracer(self.config['service_name'] or "monoscope-tracer")
+        span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         if self.debug:
             print("Monoscope: making request")
         request_method = request.method
