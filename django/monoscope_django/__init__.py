@@ -1,6 +1,6 @@
 import uuid
 import json
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, SpanKind
 from django.conf import settings
 from common import observe_request, report_error, set_attributes
 

@@ -4,7 +4,7 @@ from typing import Any
 from common import observe_request, report_error, set_attributes
 from starlette.types import Message
 from starlette.concurrency import iterate_in_threadpool
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, SpanKind
 
 async def set_body(request: Request, body: bytes):
     async def receive() -> Message:

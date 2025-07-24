@@ -3,7 +3,7 @@ from flask import request, g
 import json
 from common import observe_request, report_error, set_attributes
 from werkzeug.exceptions import HTTPException
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, SpanKind
 
 
 observe_request = observe_request

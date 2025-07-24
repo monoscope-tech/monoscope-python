@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="apitoolkit-common",
-    version="0.1.0",
+    name="monoscope-common",
+    version="1.0.0",
     description="Shared code for apitoolkit python sdks",
     author="Yussif Mohammed",
     author_email="yousiph77@gmail.com",

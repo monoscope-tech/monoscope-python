@@ -1,7 +1,7 @@
 from base64 import b64encode
 import json
 from datetime import datetime
-from opentelemetry.trace import get_tracer
+from opentelemetry.trace import get_tracer, SpanKind
 import traceback
 import requests
 from jsonpath_ng import parse
