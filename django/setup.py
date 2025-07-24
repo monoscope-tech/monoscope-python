@@ -14,7 +14,7 @@ setup(
     author='monoscope',
     install_requires=[
         'Django',
-        'apitoolkit-common',
+        'monoscope-common',
         "opentelemetry-api>=1.0.0",
     ]
 )

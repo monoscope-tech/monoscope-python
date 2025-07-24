@@ -14,7 +14,7 @@ setup(
     author='Monoscope',
     install_requires=[
         'pyramid',
-        'apitoolkit-common',
+        'monoscope-common',
         "opentelemetry-api>=1.0.0",
     ],
 )

@@ -13,7 +13,7 @@ setup(
     author='Monoscope',
     install_requires=[
         'fastapi',
-        'apitoolkit-common',
+        'monoscope-common',
         "opentelemetry-api>=1.0.0",
     ]
 )
