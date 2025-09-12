@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="monoscope-django",
-    version='1.0.1',
+    version='1.0.3',
     packages=find_packages(),
     description='A Django SDK for Monoscope integration',
     long_description=long_description,

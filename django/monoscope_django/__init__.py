@@ -3,7 +3,8 @@ import json
 from opentelemetry.trace import get_tracer, SpanKind
 from django.conf import settings
 from common import observe_request, report_error, set_attributes
-
+import os
+import re
 observe_request = observe_request
 report_error = report_error
 class MonoscopeMiddleware:
@@ -36,11 +37,24 @@ class MonoscopeMiddleware:
                        "capture_request_body": capture_request_body,
                        "capture_response_body": capture_response_body
                        }
+        
+        exclude_urls = os.environ.get("OTEL_PYTHON_EXCLUDED_URLS", "")
+        self.exclude_url_patterns = [ re.compile(pattern.strip()) for pattern in exclude_urls.split(",") if pattern.strip()]
+
     def process_exception(self, request, exception):
         report_error(request,exception)
         pass
-
+    
+    def is_excluded_path(self, path): 
+        for regex in self.exclude_url_patterns: 
+            if regex.search(path):
+                return True 
+        return False
+    
     def __call__(self, request):
+        if self.is_excluded_path(request.path):
+            return self.get_response(request)
+        
         tracer = get_tracer(self.config['service_name'] or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         if self.debug:
@@ -52,7 +66,10 @@ class MonoscopeMiddleware:
         request_headers = request.headers
         content_type = request.headers.get('Content-Type', '')
         if content_type == 'application/json':
-            request_body = json.loads(request.body.decode('utf-8'))
+            try:
+                request_body = json.loads(request.body.decode('utf-8'))
+            except json.JSONDecodeError:
+                request_body = request.body.decode('utf-8')
         if content_type == 'text/plain':
             request_body = request.body.decode('utf-8')
         if content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in content_type:
@@ -66,6 +83,10 @@ class MonoscopeMiddleware:
             print("Monoscope: after request")
         try:
             url_path = request.resolver_match.route if request.resolver_match is not None else None
+            if self.is_excluded_path(url_path or ""): 
+                span = None 
+                return response
+            
             path_params = request.resolver_match.kwargs if request.resolver_match is not None else {}
             status_code = response.status_code
             request_body = json.dumps(request_body)
