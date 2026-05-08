@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="monoscope-pyramid",
-    version="1.0.0",
+    version="1.1.0",
     packages=find_packages(),
     description='A Python Pyramid SDK for Monoscope integration',
     long_description=long_description,

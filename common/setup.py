@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="monoscope-common",
-    version="1.0.0",
+    version="1.1.0",
     description="Shared code for apitoolkit python sdks",
     author="Yussif Mohammed",
     author_email="yousiph77@gmail.com",

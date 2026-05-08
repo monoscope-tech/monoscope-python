@@ -1,5 +1,6 @@
 from base64 import b64encode
 import json
+from contextvars import ContextVar
 from datetime import datetime
 from opentelemetry.trace import get_tracer, SpanKind
 import traceback
@@ -8,6 +9,43 @@ from jsonpath_ng import parse
 import json
 import pytz
 import httpx
+
+# Holds the active request span so set_user / set_tenant /
+# add_attributes_to_current_span can attach attributes from anywhere inside
+# a request handler. Mirrors AsyncLocalStorage in the JS SDK; works in both
+# sync (Flask, Django, Pyramid) and async (FastAPI) handlers.
+_current_span_var: ContextVar = ContextVar("monoscope_current_span", default=None)
+
+
+def add_attributes_to_current_span(attributes: dict) -> None:
+    span = _current_span_var.get()
+    if span is None:
+        return
+    for key, value in attributes.items():
+        if value is None:
+            continue
+        span.set_attribute(key, value)
+
+
+def set_user(user: dict) -> None:
+    """Attach the authenticated user to the current request span.
+
+    Accepts a dict with optional `id`, `email`, and `name` keys; missing
+    fields are skipped so partial info is fine.
+    """
+    add_attributes_to_current_span({
+        "user.id": user.get("id"),
+        "user.email": user.get("email"),
+        "user.full_name": user.get("name"),
+    })
+
+
+def set_tenant(tenant: dict) -> None:
+    """Attach the authenticated tenant/org to the current request span."""
+    add_attributes_to_current_span({
+        "tenant.id": tenant.get("id"),
+        "tenant.name": tenant.get("name"),
+    })
 
 
 def set_attributes(

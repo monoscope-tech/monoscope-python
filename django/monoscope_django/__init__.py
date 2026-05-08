@@ -2,11 +2,22 @@ import uuid
 import json
 from opentelemetry.trace import get_tracer, SpanKind
 from django.conf import settings
-from common import observe_request, report_error, set_attributes
+from common import (
+    observe_request,
+    report_error,
+    set_attributes,
+    set_user,
+    set_tenant,
+    add_attributes_to_current_span,
+    _current_span_var,
+)
 import os
 import re
 observe_request = observe_request
 report_error = report_error
+set_user = set_user
+set_tenant = set_tenant
+add_attributes_to_current_span = add_attributes_to_current_span
 class MonoscopeMiddleware:
     def __init__(self, get_response):
         redact_headers = getattr(
@@ -57,6 +68,13 @@ class MonoscopeMiddleware:
         
         tracer = get_tracer(self.config['service_name'] or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
+        ctx_token = _current_span_var.set(span)
+        try:
+            return self._handle(request, span)
+        finally:
+            _current_span_var.reset(ctx_token)
+
+    def _handle(self, request, span):
         if self.debug:
             print("Monoscope: making request")
         request_method = request.method

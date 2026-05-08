@@ -3,11 +3,22 @@ import uuid
 from urllib.parse import urlsplit
 from opentelemetry.trace import get_tracer, SpanKind
 from pyramid.request import Request
-from common import observe_request, report_error, set_attributes
+from common import (
+    observe_request,
+    report_error,
+    set_attributes,
+    set_user,
+    set_tenant,
+    add_attributes_to_current_span,
+    _current_span_var,
+)
 
 
 observe_request = observe_request
 report_error = report_error
+set_user = set_user
+set_tenant = set_tenant
+add_attributes_to_current_span = add_attributes_to_current_span
 
 OPTIONAL_SETTINGS = (
     # var in class, environment name, type, default value
@@ -61,6 +72,13 @@ class Monoscope(object):
     def __call__(self, request: Request):
         tracer = get_tracer(self.service_name or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
+        ctx_token = _current_span_var.set(span)
+        try:
+            return self._handle(request, span)
+        finally:
+            _current_span_var.reset(ctx_token)
+
+    def _handle(self, request: Request, span):
         if self.debug:
             print("Monoscope: making request")
 

@@ -1,13 +1,24 @@
 import uuid
 from flask import request, g
 import json
-from common import observe_request, report_error, set_attributes
+from common import (
+    observe_request,
+    report_error,
+    set_attributes,
+    set_user,
+    set_tenant,
+    add_attributes_to_current_span,
+    _current_span_var,
+)
 from werkzeug.exceptions import HTTPException
 from opentelemetry.trace import get_tracer, SpanKind
 
 
 observe_request = observe_request
 report_error = report_error
+set_user = set_user
+set_tenant = set_tenant
+add_attributes_to_current_span = add_attributes_to_current_span
 class Monoscope:
     def __init__(self, redact_headers=["Authorization", "Cookie"], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
         self.debug = debug
@@ -32,6 +43,7 @@ class Monoscope:
     def beforeRequest(self):
         tracer = get_tracer(self.service_name or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
+        g._monoscope_ctx_token = _current_span_var.set(span)
         if self.debug:
             print("Monoscope: beforeRequest")
         request_method = request.method
@@ -105,6 +117,11 @@ class Monoscope:
                )
         except Exception as e:
             return None
+        finally:
+            token = g.pop("_monoscope_ctx_token", None)
+            if token is not None:
+                _current_span_var.reset(token)
+
     def handle_error(self, e):
      if not isinstance(e, HTTPException):
         report_error(request, e)

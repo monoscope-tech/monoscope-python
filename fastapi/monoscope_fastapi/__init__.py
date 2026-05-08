@@ -1,7 +1,15 @@
 import uuid
 from fastapi import Request, Response
 from typing import Any
-from common import observe_request, report_error, set_attributes
+from common import (
+    observe_request,
+    report_error,
+    set_attributes,
+    set_user,
+    set_tenant,
+    add_attributes_to_current_span,
+    _current_span_var,
+)
 from starlette.types import Message
 from starlette.concurrency import iterate_in_threadpool
 from opentelemetry.trace import get_tracer, SpanKind
@@ -19,6 +27,9 @@ async def get_body(request: Request) -> bytes:
 
 observe_request = observe_request
 report_error = report_error
+set_user = set_user
+set_tenant = set_tenant
+add_attributes_to_current_span = add_attributes_to_current_span
 
 class Monoscope:
     def __init__(self, debug=False,
@@ -57,6 +68,7 @@ class Monoscope:
     async def middleware(self, request: Request, call_next):
         tracer = get_tracer(self.service_name or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
+        ctx_token = _current_span_var.set(span)
         if self.debug:
             print("Monoscope middleware")
         request.state.apitoolkit_message_id = str(uuid.uuid4())
@@ -116,3 +128,4 @@ class Monoscope:
             else:
                 if self.debug:
                     print("Monoscope metadata is not set restart server to fix")
+            _current_span_var.reset(ctx_token)
