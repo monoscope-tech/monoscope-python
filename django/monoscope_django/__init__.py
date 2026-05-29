@@ -8,6 +8,8 @@ from common import (
     set_attributes,
     set_user,
     set_tenant,
+    set_session,
+    apply_session_from_baggage,
     add_attributes_to_current_span,
     _current_span_var,
 )
@@ -17,6 +19,7 @@ observe_request = observe_request
 report_error = report_error
 set_user = set_user
 set_tenant = set_tenant
+set_session = set_session
 add_attributes_to_current_span = add_attributes_to_current_span
 class MonoscopeMiddleware:
     def __init__(self, get_response):
@@ -69,6 +72,7 @@ class MonoscopeMiddleware:
         tracer = get_tracer(self.config['service_name'] or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         ctx_token = _current_span_var.set(span)
+        apply_session_from_baggage(span)
         try:
             return self._handle(request, span)
         finally:

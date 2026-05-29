@@ -18,6 +18,8 @@ from common import (  # noqa: E402
     add_attributes_to_current_span,
     set_user,
     set_tenant,
+    set_session,
+    apply_session_from_baggage,
     _current_span_var,
 )
 
@@ -52,6 +54,37 @@ class SetUserTenantTests(unittest.TestCase):
         add_attributes_to_current_span({"a": "x", "b": None, "c": 0})
         self.assertEqual(self._attrs(), {"a": "x", "c": 0})
 
+    def test_set_session(self):
+        set_session("sess-1")
+        self.assertEqual(self._attrs(), {"session.id": "sess-1"})
+
+
+class ApplySessionFromBaggageTests(unittest.TestCase):
+    """`apply_session_from_baggage` reads from OTel baggage on the active
+    context; here we stub the lookup so we don't need a real OTel pipeline."""
+
+    def test_tags_span_when_baggage_present(self):
+        span = MagicMock()
+        import common as common_mod
+        original = common_mod.get_baggage
+        common_mod.get_baggage = lambda key: "sess-from-bag" if key == "session.id" else None
+        try:
+            apply_session_from_baggage(span)
+        finally:
+            common_mod.get_baggage = original
+        span.set_attribute.assert_called_once_with("session.id", "sess-from-bag")
+
+    def test_noop_when_baggage_absent(self):
+        span = MagicMock()
+        import common as common_mod
+        original = common_mod.get_baggage
+        common_mod.get_baggage = lambda key: None
+        try:
+            apply_session_from_baggage(span)
+        finally:
+            common_mod.get_baggage = original
+        span.set_attribute.assert_not_called()
+
 
 class NoActiveSpanTests(unittest.TestCase):
     """When called outside a Monoscope-handled request, helpers should no-op."""
@@ -60,6 +93,7 @@ class NoActiveSpanTests(unittest.TestCase):
         # _current_span_var defaults to None outside any set scope
         set_user({"id": "u1", "email": "a@b.com"})
         set_tenant({"id": "t1"})
+        set_session("sess-1")
         # Nothing to assert beyond "no exception raised".
 
 

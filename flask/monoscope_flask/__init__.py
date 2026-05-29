@@ -7,6 +7,8 @@ from common import (
     set_attributes,
     set_user,
     set_tenant,
+    set_session,
+    apply_session_from_baggage,
     add_attributes_to_current_span,
     _current_span_var,
 )
@@ -18,6 +20,7 @@ observe_request = observe_request
 report_error = report_error
 set_user = set_user
 set_tenant = set_tenant
+set_session = set_session
 add_attributes_to_current_span = add_attributes_to_current_span
 class Monoscope:
     def __init__(self, redact_headers=["Authorization", "Cookie"], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
@@ -44,6 +47,7 @@ class Monoscope:
         tracer = get_tracer(self.service_name or "monoscope-tracer")
         span = tracer.start_span("monoscope.http", kind=SpanKind.SERVER)
         g._monoscope_ctx_token = _current_span_var.set(span)
+        apply_session_from_baggage(span)
         if self.debug:
             print("Monoscope: beforeRequest")
         request_method = request.method

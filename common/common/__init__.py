@@ -3,6 +3,7 @@ import json
 from contextvars import ContextVar
 from datetime import datetime
 from opentelemetry.trace import get_tracer, SpanKind
+from opentelemetry.baggage import get_baggage
 import traceback
 import requests
 from jsonpath_ng import parse
@@ -46,6 +47,27 @@ def set_tenant(tenant: dict) -> None:
         "tenant.id": tenant.get("id"),
         "tenant.name": tenant.get("name"),
     })
+
+
+def set_session(session_id: str) -> None:
+    """Attach a session id to the current request span as `session.id`."""
+    add_attributes_to_current_span({"session.id": session_id})
+
+
+def apply_session_from_baggage(span) -> None:
+    """Tag the request span with `session.id` from W3C baggage if present.
+
+    Called by each framework middleware after span creation. The browser SDK
+    seeds `session.id` into baggage on outbound fetch/XHR; the OTel default
+    propagator (tracecontext + baggage) extracts it on the incoming request.
+    Safe no-op when baggage is absent.
+    """
+    try:
+        session_id = get_baggage("session.id")
+        if session_id:
+            span.set_attribute("session.id", session_id)
+    except Exception:
+        pass
 
 
 def set_attributes(
