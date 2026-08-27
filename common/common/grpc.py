@@ -50,14 +50,21 @@ def _grpc_code(context, error) -> int:
 
     Kept because the HTTP shape cannot express it: NOT_FOUND and PERMISSION_DENIED both flatten
     to 500, and that distinction is usually the whole question during an incident.
+
+    The context is consulted **before** falling back to UNKNOWN, and that ordering is the point:
+    ``context.abort(StatusCode.NOT_FOUND, ...)`` raises, so treating "the handler raised" as
+    UNKNOWN would throw away the code the handler had just explicitly set — on the one path
+    where the service went to the trouble of being specific.
     """
-    if error is not None:
-        return grpc.StatusCode.UNKNOWN.value[0]
     try:
         code = context.code()
-        return code.value[0] if code is not None else grpc.StatusCode.OK.value[0]
+        if code is not None:
+            return code.value[0]
     except Exception:
-        return grpc.StatusCode.OK.value[0]
+        pass
+    if error is not None:
+        return grpc.StatusCode.UNKNOWN.value[0]
+    return grpc.StatusCode.OK.value[0]
 
 
 class MonoscopeServerInterceptor(grpc.ServerInterceptor):

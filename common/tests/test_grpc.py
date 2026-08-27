@@ -39,11 +39,14 @@ class _Details:
 
 
 class _Context:
+    def __init__(self, code=None):
+        self._code = code
+
     def code(self):
-        return None
+        return self._code
 
 
-def _run(config, behavior, request, exporter):
+def _run(config, behavior, request, exporter, context=None):
     """Push one RPC through the interceptor and return (attributes, response, raised)."""
     handler = grpc.unary_unary_rpc_method_handler(behavior)
     wrapped = MonoscopeServerInterceptor(config).intercept_service(
@@ -52,7 +55,7 @@ def _run(config, behavior, request, exporter):
     raised = None
     response = None
     try:
-        response = wrapped.unary_unary(request, _Context())
+        response = wrapped.unary_unary(request, context or _Context())
     except Exception as exc:  # noqa: BLE001
         raised = exc
 
@@ -131,3 +134,22 @@ def test_streaming_handlers_are_left_alone(exporter):
         lambda _d: handler, _Details()
     )
     assert returned is handler, "streaming handlers must be returned untouched"
+
+
+def test_abort_keeps_the_code_the_handler_set(exporter):
+    """context.abort() raises, so treating "raised" as UNKNOWN would discard the real code.
+
+    That is the one path where the service went to the trouble of being specific, and it is
+    the whole justification for recording rpc.grpc.status_code separately.
+    """
+
+    def behavior(req, ctx):
+        raise RuntimeError("aborted")  # what abort() surfaces to the interceptor
+
+    attrs, _, raised = _run(
+        CAPTURE, behavior, {}, exporter, context=_Context(grpc.StatusCode.NOT_FOUND)
+    )
+
+    assert isinstance(raised, RuntimeError)
+    assert attrs["rpc.grpc.status_code"] == grpc.StatusCode.NOT_FOUND.value[0]
+    assert attrs["http.response.status_code"] == 500, "still an error in HTTP terms"
