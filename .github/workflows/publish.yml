@@ -1,0 +1,51 @@
+name: Publish to PyPI
+
+# Manual, per-package, because the five packages in this repo version independently and have
+# drifted apart from PyPI (every one of them sat at 1.1.0 locally while PyPI still served
+# 1.0.x). A push-triggered release would have shipped four unintended versions the first time
+# it ran.
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Which package directory to publish
+        required: true
+        type: choice
+        options: [common, flask, django, fastapi, pyramid]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # PyPI Trusted Publishing: the job exchanges this OIDC token for a short-lived upload
+      # token, so no API token is stored as a secret anywhere. It requires a one-time
+      # publisher configured on PyPI for this repo + workflow + environment.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run the package's tests
+        working-directory: ${{ inputs.package }}
+        # From the repo root pytest fails collection on the import path, so tests run from
+        # inside the package directory — the same way they run locally.
+        run: |
+          python -m pip install --quiet --upgrade pip pytest
+          python -m pip install --quiet -e .
+          if [ -d tests ]; then
+            python -m pip install --quiet grpcio protobuf opentelemetry-sdk
+            python -m pytest tests -q
+          fi
+
+      - name: Build
+        working-directory: ${{ inputs.package }}
+        run: |
+          python -m pip install --quiet build
+          python -m build
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: ${{ inputs.package }}/dist
