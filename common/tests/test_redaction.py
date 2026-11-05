@@ -86,3 +86,13 @@ def test_outgoing_network_error_is_recorded_and_reraised(exporter):
     assert attrs["net.host.name"] == "down.example.com"
     assert attrs["http.route"] == "/x"
     assert json.loads(attrs["apitoolkit.errors"])[0]["error_type"] == "ConnectError"
+
+
+def test_outgoing_capture_failure_never_replaces_the_callers_error(exporter):
+    def refuse(req):
+        raise httpx.ConnectError("refused", request=req)
+
+    client = observe_request(object())
+    client._transport = httpx.MockTransport(refuse)
+    with pytest.raises(httpx.ConnectError):
+        client.get("http://down.example.com/x")

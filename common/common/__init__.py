@@ -163,8 +163,10 @@ def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_
         try:
             return send(request, **kwargs)
         except Exception as error:
-            if "monoscope_span" in request.extensions:
+            try:
                 record(request, 0, {}, "", [ATError(error).to_dict()])
+            except Exception:
+                pass
             raise
     client.send = send_and_record_failure
 
