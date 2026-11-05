@@ -3,6 +3,7 @@ import uuid
 from urllib.parse import urlsplit
 from opentelemetry.trace import get_tracer, SpanKind
 from pyramid.request import Request
+from pyramid.settings import asbool
 from common import (
     observe_request,
     report_error,
@@ -59,12 +60,15 @@ class Monoscope(object):
         }
 
     def prepare_optional_settings(self, var_name, value, _type, default):
-        if _type in (bool, str):
+        if _type is bool:
+            # ini files hand every value over as a string, so "false" must not read as truthy
+            setattr(self, var_name, default if value is None else asbool(value))
+        elif _type is str:
             setattr(self, var_name, value or default)
         elif _type is list:
             # env value can directly be a list or when given via ini file a comma separated string
             try:
-                setattr(self, var_name, value.split(','))
+                setattr(self, var_name, [v.strip() for v in value.split(',') if v.strip()])
             except AttributeError:
                 setattr(self, var_name, value or [])
 

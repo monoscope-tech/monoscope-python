@@ -34,3 +34,13 @@ def _call(**settings):
 def test_bodies_are_captured_only_when_enabled(flag, kind, value):
     assert base64.b64decode(_call()[f"http.{kind}.body"]) == b""
     assert value in base64.b64decode(_call(**{flag: True})[f"http.{kind}.body"])
+
+
+def test_ini_string_flags_are_parsed_as_booleans():
+    assert base64.b64decode(_call(MONOSCOPE_CAPTURE_REQUEST_BODY="false")["http.request.body"]) == b""
+    assert b"password" in base64.b64decode(_call(MONOSCOPE_CAPTURE_REQUEST_BODY="true")["http.request.body"])
+
+
+def test_ini_comma_lists_are_trimmed():
+    attrs = _call(MONOSCOPE_REDACT_REQUEST_BODY="$.other, $.password", MONOSCOPE_CAPTURE_REQUEST_BODY="true")
+    assert b"[CLIENT_REDACTED]" in base64.b64decode(attrs["http.request.body"])
