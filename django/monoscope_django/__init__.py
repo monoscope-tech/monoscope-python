@@ -87,15 +87,16 @@ class MonoscopeMiddleware:
         query_params = dict(request.GET.copy())
         request_headers = request.headers
         content_type = request.headers.get('Content-Type', '')
-        if content_type == 'application/json':
-            try:
-                request_body = json.loads(request.body.decode('utf-8'))
-            except json.JSONDecodeError:
+        if self.config['capture_request_body']:
+            if content_type == 'application/json':
+                try:
+                    request_body = json.loads(request.body.decode('utf-8'))
+                except json.JSONDecodeError:
+                    request_body = request.body.decode('utf-8')
+            if content_type == 'text/plain':
                 request_body = request.body.decode('utf-8')
-        if content_type == 'text/plain':
-            request_body = request.body.decode('utf-8')
-        if content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in content_type:
-            request_body = dict(request.POST.copy())
+            if content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in content_type:
+                request_body = dict(request.POST.copy())
         request.apitoolkit_message_id = str(uuid.uuid4())
         request.apitoolkit_errors = []
         request.apitoolkit_client = self
@@ -111,10 +112,9 @@ class MonoscopeMiddleware:
             
             path_params = request.resolver_match.kwargs if request.resolver_match is not None else {}
             status_code = response.status_code
-            request_body = json.dumps(request_body)
+            request_body = json.dumps(request_body) if self.config['capture_request_body'] else ""
             response_headers = response.headers
-            request_body = request_body
-            response_body = response.content.decode('utf-8')
+            response_body = response.content.decode('utf-8') if self.config['capture_response_body'] else ""
             message_id = request.apitoolkit_message_id
             errors = request.apitoolkit_errors
             host = request.headers.get('HOST') or ""
