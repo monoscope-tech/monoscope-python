@@ -49,3 +49,6 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: ${{ inputs.package }}/dist
+          # Trusted publishers are not configured on PyPI for these projects, so the org token is
+          # used. Drop this line once they are, and the job falls back to OIDC.
+          password: ${{ secrets.PYPI_API_TOKEN }}
