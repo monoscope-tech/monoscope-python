@@ -75,6 +75,10 @@ class MonoscopeMiddleware:
         apply_session_from_baggage(span)
         try:
             return self._handle(request, span)
+        except Exception as e:
+            span.record_exception(e)
+            span.end()
+            raise
         finally:
             _current_span_var.reset(ctx_token)
 
@@ -106,8 +110,9 @@ class MonoscopeMiddleware:
             print("Monoscope: after request")
         try:
             url_path = request.resolver_match.route if request.resolver_match is not None else None
-            if self.is_excluded_path(url_path or ""): 
-                span = None 
+            # The route pattern is only known after routing, so the span has already started.
+            if self.is_excluded_path(url_path or ""):
+                span.end()
                 return response
             
             path_params = request.resolver_match.kwargs if request.resolver_match is not None else {}

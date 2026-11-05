@@ -120,12 +120,13 @@ class Monoscope:
                self.config,
                "PythonFlask"
                )
-        except Exception as e:
-            return None
+        except Exception:
+            pass
         finally:
             token = g.pop("_monoscope_ctx_token", None)
             if token is not None:
                 _current_span_var.reset(token)
+        return response
 
     def handle_error(self, e):
      if not isinstance(e, HTTPException):

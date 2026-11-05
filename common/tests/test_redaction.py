@@ -96,3 +96,21 @@ def test_outgoing_capture_failure_never_replaces_the_callers_error(exporter):
     client._transport = httpx.MockTransport(refuse)
     with pytest.raises(httpx.ConnectError):
         client.get("http://down.example.com/x")
+
+
+def test_outgoing_body_read_failure_is_recorded_once_and_reraised(exporter):
+    class Broken(httpx.SyncByteStream):
+        def __iter__(self):
+            raise httpx.ReadError("reset")
+
+    with pytest.raises(httpx.ReadError):
+        _client(lambda req: httpx.Response(200, stream=Broken())).get("http://api.example.com/x")
+    attrs = _attrs(exporter)
+    assert attrs["http.response.status_code"] == 200
+    assert json.loads(attrs["apitoolkit.errors"])[0]["error_type"] == "ReadError"
+
+
+def test_service_version_is_recorded(exporter):
+    set_attributes(trace.get_tracer("t").start_span("s"), "h", 200, {}, {}, {}, {}, "GET", "/", "m", "/", "", "", [],
+                   {"service_version": "1.2.3"}, "t")
+    assert _attrs(exporter)["apitoolkit.service_version"] == "1.2.3"
