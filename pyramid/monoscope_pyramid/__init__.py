@@ -123,7 +123,7 @@ class Monoscope(object):
 
             url_path = request.matched_route.pattern if request.matched_route is not None else request.path
             path_params = request.matchdict
-            request_body = json.dumps(request_body)
+            request_body = json.dumps(request_body) if self.capture_request_body else ""
             response_headers = response.headers
             response_body =  response.body if self.capture_response_body else ""
             message_id = request.apitoolkit_message_id

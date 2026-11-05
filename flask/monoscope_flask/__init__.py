@@ -23,7 +23,7 @@ set_tenant = set_tenant
 set_session = set_session
 add_attributes_to_current_span = add_attributes_to_current_span
 class Monoscope:
-    def __init__(self, redact_headers=["Authorization", "Cookie"], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
+    def __init__(self, redact_headers=[], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
         self.debug = debug
         self.redact_headers = redact_headers
         self.redact_request_body = redact_request_body
@@ -59,12 +59,13 @@ class Monoscope:
         request_headers = dict(request.headers)
         content_type = request.headers.get('Content-Type', '')
 
-        if content_type == 'application/json':
-            request_body = request.get_json()
-        if content_type == 'text/plain':
-            request_body = request.get_data().decode('utf-8')
-        if content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in content_type:
-            request_body = request.form.copy().to_dict()
+        if self.config['capture_request_body']:
+          if content_type == 'application/json':
+              request_body = request.get_json()
+          if content_type == 'text/plain':
+              request_body = request.get_data().decode('utf-8')
+          if content_type == 'application/x-www-form-urlencoded' or 'multipart/form-data' in content_type:
+              request_body = request.form.copy().to_dict()
 
         g.apitoolkit_request_data = {
             "span": span,
@@ -88,11 +89,11 @@ class Monoscope:
 
         apitoolkit_request_data = g.get("apitoolkit_request_data", {})
         status_code = response.status_code
-        request_body = json.dumps(
-            apitoolkit_request_data.get("request_body", {}))
+        request_body = json.dumps(apitoolkit_request_data.get(
+            "request_body", {})) if self.config['capture_request_body'] else ""
         response_headers = dict(response.headers)
         response_body = ""
-        if not response.direct_passthrough:
+        if self.config['capture_response_body'] and not response.direct_passthrough:
           response_body = response.data
         message_id = request.apitoolkit_message_id
         span = apitoolkit_request_data.get("span", None)
@@ -110,9 +111,9 @@ class Monoscope:
                request_headers,
                response_headers,
                apitoolkit_request_data.get("method", ""),
-               apitoolkit_request_data.get("url_path", ""),
-               message_id,
                apitoolkit_request_data.get("raw_url", ""),
+               message_id,
+               apitoolkit_request_data.get("url_path", ""),
                request_body,
                response_body,
                request.apitoolkit_errors,

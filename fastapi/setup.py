@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="monoscope-fastapi",
-    version="1.1.0",
+    version="1.1.1",
     packages=find_packages(),
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -13,7 +13,7 @@ setup(
     author='Monoscope',
     install_requires=[
         'fastapi',
-        'monoscope-common',
+        'monoscope-common>=1.2.1',
         "opentelemetry-api>=1.0.0",
     ]
 )

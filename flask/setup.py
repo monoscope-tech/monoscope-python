@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="monoscope-flask",
-    version='1.1.0',
+    version='1.1.1',
     packages=find_packages(),
     description='A Flask SDK for Monoscope integration',
     long_description=long_description,
@@ -14,7 +14,7 @@ setup(
     author='Monoscope',
     install_requires=[
         'Flask',
-        'monoscope-common',
+        'monoscope-common>=1.2.1',
         "opentelemetry-api>=1.0.0",
     ],
 )

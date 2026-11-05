@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="monoscope-django",
-    version='1.1.0',
+    version='1.1.1',
     packages=find_packages(),
     description='A Django SDK for Monoscope integration',
     long_description=long_description,
@@ -14,7 +14,7 @@ setup(
     author='monoscope',
     install_requires=[
         'Django',
-        'monoscope-common',
+        'monoscope-common>=1.2.1',
         "opentelemetry-api>=1.0.0",
     ]
 )
