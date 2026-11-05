@@ -35,3 +35,9 @@ def test_bodies_are_captured_only_when_enabled(flag, kind, value):
     assert _body(_call(), kind) == b""
     assert value in _body(_call(**{flag: True}), kind)
 
+
+
+def test_route_is_the_pattern_and_target_is_the_full_path():
+    attrs = _call()
+    assert attrs["http.route"] == "/users/<name>"
+    assert attrs["http.target"] == "/users/ada?x=1"
