@@ -5,9 +5,7 @@ from datetime import datetime
 from opentelemetry.trace import get_tracer, SpanKind
 from opentelemetry.baggage import get_baggage
 import traceback
-import requests
 from jsonpath_ng import parse
-import json
 import pytz
 import httpx
 
@@ -70,6 +68,9 @@ def apply_session_from_baggage(span) -> None:
         pass
 
 
+DEFAULT_REDACTED_HEADERS = ["authorization", "cookie", "set-cookie", "proxy-authorization"]
+
+
 def set_attributes(
     span,
     host: str,
@@ -90,10 +91,7 @@ def set_attributes(
     parent_id: str = None,
 ):
     try:
-        def redact_header(header: str) -> str:
-            if header.lower() in (config.get("redact_headers", []) + ["cookies", "authorization"]):
-                return "[CLIENT_REDACTED]"
-            return header
+        redacted = {h.strip().lower() for h in config.get("redact_headers", []) + DEFAULT_REDACTED_HEADERS}
 
         span.set_attributes({
             "net.host.name": host,
@@ -113,11 +111,10 @@ def set_attributes(
             "apitoolkit.tags": json.dumps(config.get("tags", [])),
         })
 
-        for header, value in req_headers.items():
-            span.set_attribute(f"http.request.header.{header}", redact_header(str(value)))
-
-        for header, value in resp_headers.items():
-            span.set_attribute(f"http.response.header.{header}", redact_header(str(value)))
+        for kind, headers in (("request", req_headers), ("response", resp_headers)):
+            for header, value in headers.items():
+                span.set_attribute(f"http.{kind}.header.{header}",
+                                   "[CLIENT_REDACTED]" if header.lower() in redacted else str(value))
 
     except Exception as error:
         span.record_exception(error)
@@ -126,70 +123,65 @@ def set_attributes(
 
 
 def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_request_body=[], redact_response_body=[]):
-    start_time = 0
-    span = None
-    req = None
-
     def on_request(request):
-        nonlocal start_time, req, span
-        # create an open telemetry span
         tracer = get_tracer("monoscope-tracer")
-        span = tracer.start_span("monoscope.http", kind=SpanKind.CLIENT)
-        req = request
-        return request
+        # Kept on the request, not the closure, so concurrent calls on one client don't share a span.
+        request.extensions["monoscope_span"] = tracer.start_span("monoscope.http", kind=SpanKind.CLIENT)
 
-    def on_response(response):
-      try:
-        response.read()
+    def record(req, status_code, res_headers, res_body, errors):
         message_id = parent_request.apitoolkit_message_id if hasattr(
             parent_request, "apitoolkit_message_id") else parent_request.state.apitoolkit_message_id if hasattr(parent_request.state, "apitoolkit_message_id") else None
         if message_id is None:
             print(
                 "No message_id found attached to request, make sure middleware is configured correctly")
-
-        host = req.url.host if req.url else ""
-        url_path = url_wildcard or req.url.path
-        path_and_query = get_path_and_query_params_from_url(req.url) if req.url else {
-        "path": "", "queryParams": {}, "rawUrl": ""}
-        req_body = req.content.decode()
-        res_body = response.text
+        try:
+            req_body = req.content.decode()
+        except Exception:
+            req_body = ""
         req_headers = dict((k, v if isinstance(v, list) else [v]) for k, v in req.headers.items())
-        res_headers = dict((k, v if isinstance(v, list) else [v]) for k, v in (response.headers if response else {}).items())
         config = {"redact_headers": redact_headers, "redact_request_body": redact_request_body, "redact_response_body": redact_response_body}
         set_attributes(
-            span, host, response.status_code,
-            path_and_query["queryParams"], {},
-            req_headers, res_headers, req.method.upper() if req.method else "",
-            req.url.path, message_id, url_path, req_body, res_body, [], config, sdk_type="PythonOutgoing")
+            req.extensions["monoscope_span"], req.url.host, status_code,
+            dict(req.url.params), {},
+            req_headers, res_headers, req.method.upper(),
+            req.url.path, message_id, url_wildcard or req.url.path, req_body, res_body, errors, config, sdk_type="PythonOutgoing")
+
+    def on_response(response):
+      try:
+        response.read()
+        res_headers = dict((k, v if isinstance(v, list) else [v]) for k, v in response.headers.items())
+        record(response.request, response.status_code, res_headers, response.text, [])
       except Exception as e:
           pass
 
     client = httpx.Client(event_hooks={'request': [
         on_request], 'response': [on_response]})
 
+    # httpx has no error hook, so a failed connection would otherwise leave the span open and unexported.
+    send = client.send
+    def send_and_record_failure(request, **kwargs):
+        try:
+            return send(request, **kwargs)
+        except Exception as error:
+            if "monoscope_span" in request.extensions:
+                record(request, 0, {}, "", [ATError(error).to_dict()])
+            raise
+    client.send = send_and_record_failure
+
     return client
 
 def redact_fields(body, paths):
     try:
-        data = json.loads(body)
-        for path in paths:
-            expr = parse(path)
-            expr.update(data, "[CLIENT_REDACTED]")
-        return json.dumps(data).encode("utf-8")
-    except Exception as e:
-        if isinstance(body, str):
-            return body.encode('utf-8')
-        return body
-
-def get_path_and_query_params_from_url(url):
-    try:
-        parsed_url = requests.utils.urlparse(url)
-        path = parsed_url.path
-        query_params = dict(requests.utils.parse_qsl(parsed_url.query))
-        raw_url = url
-        return {"path": path, "queryParams": query_params, "rawUrl": raw_url}
-    except Exception as e:
-        return {"path": "", "queryParams": {}, "rawUrl": ""}
+        # A parsed body is deep-copied, since update() mutates in place and the caller may still use it.
+        data = json.loads(body if isinstance(body, (str, bytes, bytearray)) else json.dumps(body))
+    except Exception:
+        return body.encode('utf-8') if isinstance(body, str) else body
+    for path in paths:
+        try:
+            parse(path).update(data, "[CLIENT_REDACTED]")
+        except Exception:
+            pass
+    return json.dumps(data).encode("utf-8")
 
 class ATError:
     def __init__(self, error):

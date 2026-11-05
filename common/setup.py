@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="monoscope-common",
-    version="1.2.0",
+    version="1.2.1",
     description="Shared code for apitoolkit python sdks",
     author="Yussif Mohammed",
     author_email="yousiph77@gmail.com",
@@ -11,7 +11,6 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "opentelemetry-api>=1.0.0",
-        "requests>=2.0.0",
         "pytz>=2020.1",
         "jsonpath-ng>=1.5.3",
         "httpx>=0.18.0",

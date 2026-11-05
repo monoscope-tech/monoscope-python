@@ -23,7 +23,7 @@ set_tenant = set_tenant
 set_session = set_session
 add_attributes_to_current_span = add_attributes_to_current_span
 class Monoscope:
-    def __init__(self, redact_headers=["Authorization", "Cookie"], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
+    def __init__(self, redact_headers=[], service_name="", redact_request_body=[], redact_response_body=[], capture_request_body=False, capture_response_body=False, debug=False, service_version=None, tags=[]):
         self.debug = debug
         self.redact_headers = redact_headers
         self.redact_request_body = redact_request_body

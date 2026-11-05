@@ -36,14 +36,13 @@ add_attributes_to_current_span = add_attributes_to_current_span
 
 class Monoscope:
     def __init__(self, debug=False,
-                 redact_headers=['authorization', 'cookie'],
+                 redact_headers=[],
                  redact_request_body=[],
                  redact_response_body=[],
                  capture_request_body=False,
                  service_name="",
                  capture_response_body=False,
                  service_version=None, tags=[]):
-        self.redact_headers = ['authorization', 'cookie']
         self.redact_request_body = []
         self.redact_response_body = []
         self.service_version = service_version

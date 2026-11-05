@@ -23,11 +23,7 @@ _SDK_TYPE = "PythonGrpc"
 
 
 def _to_json_string(message) -> str:
-    """Render a gRPC message as a JSON *string*.
-
-    A string, not a dict, on purpose: ``redact_fields`` does ``json.loads(body)``, so handing it
-    an already-decoded object makes it throw and return the value **unredacted**. A gRPC message
-    arrives decoded in every language, which is exactly the path that bug lives on.
+    """Render a gRPC message as a JSON string.
 
     ``MessageToJson`` rather than a hand-rolled walk: it applies the field names declared in the
     ``.proto`` and renders 64-bit fields as strings, so a redaction path written against the
