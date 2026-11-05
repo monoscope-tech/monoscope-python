@@ -77,10 +77,12 @@ class Monoscope:
         request.state.apitoolkit_message_id = str(uuid.uuid4())
         request.state.apitoolkit_errors = []
         request.state.apitoolkit_client = self
-        request_body = await request.body() if self.config["capture_request_body"] else b""
+        request_body = b""
         err = None
         response = None
         try:
+            if self.config["capture_request_body"]:
+                request_body = await request.body()
             response = await call_next(request)
             return response
         except Exception as e:
@@ -89,47 +91,42 @@ class Monoscope:
             err = e
             raise
         finally:
-            if err is not None:
-              report_error(request, err)
-            response_body = ''
-            res_headers = {}
-            status_code = 200
-            if response is not None:
-              netloc = request.url.netloc
-              host = netloc
-              status_code = response.status_code
-              res_headers = response.headers
-              response_body = []
-              if self.config["capture_response_body"]:
-                  response_body = [chunk async for chunk in response.body_iterator]
-                  response.body_iterator = iterate_in_threadpool(iter(response_body))
-              path = request.url.path
-              route_pattern = getattr(request.scope.get('route'), 'path', path)
-              query = request.url.query
-              full_path = f"{path}"
-              if query:
-                  full_path += f"?{query}"
-              message_id = request.state.apitoolkit_message_id
-              errors = request.state.apitoolkit_errors
-              set_attributes(
-                  span,
-                  host,
-                  status_code,
-                  dict(request.query_params),
-                  dict(request.path_params),
-                  dict(request.headers),
-                  dict(res_headers),
-                  request.method,
-                  full_path,
-                  message_id,
-                  route_pattern,
-                  request_body,
-                  b''.join(response_body),
-                  errors,
-                  self.config,
-                  "PythonFastApi"
-              )
-            else:
-                if self.debug:
-                    print("Monoscope metadata is not set restart server to fix")
-            _current_span_var.reset(ctx_token)
+            try:
+                status_code, res_headers, response_body = 500, {}, []
+                if err is not None:
+                    report_error(request, err)
+                    span.record_exception(err)
+                # None also when cancelled, which is a BaseException and so leaves err unset.
+                if response is not None:
+                    status_code, res_headers = response.status_code, response.headers
+                    if self.config["capture_response_body"]:
+                        response_body = [chunk async for chunk in response.body_iterator]
+                        response.body_iterator = iterate_in_threadpool(iter(response_body))
+                path = request.url.path
+                route_pattern = getattr(request.scope.get('route'), 'path', path)
+                full_path = f"{path}?{request.url.query}" if request.url.query else path
+                set_attributes(
+                    span,
+                    request.url.netloc,
+                    status_code,
+                    dict(request.query_params),
+                    dict(request.path_params),
+                    dict(request.headers),
+                    dict(res_headers),
+                    request.method,
+                    full_path,
+                    request.state.apitoolkit_message_id,
+                    route_pattern,
+                    request_body,
+                    b''.join(response_body),
+                    request.state.apitoolkit_errors,
+                    self.config,
+                    "PythonFastApi"
+                )
+            except Exception as e:
+                # Only reachable before set_attributes, which always ends the span itself.
+                span.record_exception(e)
+                span.end()
+                raise
+            finally:
+                _current_span_var.reset(ctx_token)

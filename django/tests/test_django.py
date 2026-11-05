@@ -37,3 +37,11 @@ def _call(**flags):
 def test_bodies_are_captured_only_when_enabled(flag, kind, value):
     assert base64.b64decode(_call()[f"http.{kind}.body"]) == b""
     assert value in base64.b64decode(_call(**{flag: True})[f"http.{kind}.body"])
+
+
+def test_a_route_excluded_after_routing_still_ends_its_span(monkeypatch):
+    # Matches the route pattern "users/<name>" but not the path "/users/ada", so only the post-routing check excludes it.
+    monkeypatch.setenv("OTEL_PYTHON_EXCLUDED_URLS", "<name>")
+    EXPORTER.clear()
+    Client().get("/users/ada")
+    assert len([s for s in EXPORTER.get_finished_spans() if s.name == "monoscope.http"]) == 1

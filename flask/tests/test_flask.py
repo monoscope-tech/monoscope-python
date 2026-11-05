@@ -41,3 +41,13 @@ def test_route_is_the_pattern_and_target_is_the_full_path():
     attrs = _call()
     assert attrs["http.route"] == "/users/<name>"
     assert attrs["http.target"] == "/users/ada?x=1"
+
+
+def test_after_request_can_be_registered_directly():
+    EXPORTER.clear()
+    app, monoscope = Flask(__name__), Monoscope()
+    app.before_request(monoscope.beforeRequest)
+    app.after_request(monoscope.afterRequest)
+    app.add_url_rule("/", "i", lambda: "ok")
+    assert app.test_client().get("/").data == b"ok"
+    assert len([s for s in EXPORTER.get_finished_spans() if s.name == "monoscope.http"]) == 1

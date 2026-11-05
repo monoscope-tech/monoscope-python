@@ -44,3 +44,19 @@ def test_ini_string_flags_are_parsed_as_booleans():
 def test_ini_comma_lists_are_trimmed():
     attrs = _call(MONOSCOPE_REDACT_REQUEST_BODY="$.other, $.password", MONOSCOPE_CAPTURE_REQUEST_BODY="true")
     assert b"[CLIENT_REDACTED]" in base64.b64decode(attrs["http.request.body"])
+
+
+@pytest.mark.parametrize("settings", [{"MONOSCOPE_ROUTES_WHITELIST": "/other"}, {"MONOSCOPE_IGNORE_HTTP_CODES": "200"}])
+def test_skipped_requests_still_end_their_span(settings):
+    _call(**settings)
+
+
+def test_a_capture_failure_still_ends_the_span():
+    EXPORTER.clear()
+    with Configurator(settings={"MONOSCOPE_CAPTURE_REQUEST_BODY": "true"}) as config:
+        config.add_tween("monoscope_pyramid.Monoscope")
+        config.add_route("u", "/u")
+        config.add_view(lambda request: {}, route_name="u", renderer="json")
+        app = config.make_wsgi_app()
+    assert Request.blank("/u", method="POST", body=b"{bad", content_type="application/json").get_response(app).status_code == 200
+    assert len([s for s in EXPORTER.get_finished_spans() if s.name == "monoscope.http"]) == 1

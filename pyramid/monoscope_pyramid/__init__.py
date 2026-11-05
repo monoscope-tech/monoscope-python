@@ -83,6 +83,10 @@ class Monoscope(object):
         apply_session_from_baggage(span)
         try:
             return self._handle(request, span)
+        except Exception as e:
+            span.record_exception(e)
+            span.end()
+            raise
         finally:
             _current_span_var.reset(ctx_token)
 
@@ -98,12 +102,10 @@ class Monoscope(object):
 
         url_path = request.matched_route.pattern if request.matched_route is not None else request.path
 
-        # return early conditions (no logging)
-        if self.routes_whitelist:
-            # when route does not match any of the whitelist routes
-            if not any([url_path.startswith(route) for route in self.routes_whitelist]):
-                return response
-        if status_code in [int(code) for code in self.ignore_http_codes]:
+        # return early conditions (no logging); both depend on routing or the response, so the span has already started
+        if (self.routes_whitelist and not any(url_path.startswith(route) for route in self.routes_whitelist)) \
+                or status_code in [int(code) for code in self.ignore_http_codes]:
+            span.end()
             return response
 
         if self.debug:
@@ -152,5 +154,6 @@ class Monoscope(object):
                 "PythonPyramid"
             )
         except Exception as e:
-            return response
+            span.record_exception(e)
+            span.end()
         return response

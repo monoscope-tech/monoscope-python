@@ -107,7 +107,7 @@ def set_attributes(
             "http.request.body":  b64encode(redact_fields(req_body, config.get("redact_request_body", []))).decode(),
             "http.response.body": b64encode(redact_fields(resp_body, config.get("redact_response_body", []))).decode(),
             "apitoolkit.errors": json.dumps(errors),
-            "apitoolkit.service_version": config.get("serviceVersion", ""),
+            "apitoolkit.service_version": config.get("service_version") or "",
             "apitoolkit.tags": json.dumps(config.get("tags", [])),
         })
 
@@ -129,8 +129,12 @@ def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_
         request.extensions["monoscope_span"] = tracer.start_span("monoscope.http", kind=SpanKind.CLIENT)
 
     def record(req, status_code, res_headers, res_body, errors):
-        message_id = parent_request.apitoolkit_message_id if hasattr(
-            parent_request, "apitoolkit_message_id") else parent_request.state.apitoolkit_message_id if hasattr(parent_request.state, "apitoolkit_message_id") else None
+        # Popped, so a failure seen by both on_response and send ends the span only once.
+        span = req.extensions.pop("monoscope_span", None)
+        if span is None:
+            return
+        message_id = getattr(parent_request, "apitoolkit_message_id", None) or getattr(
+            getattr(parent_request, "state", None), "apitoolkit_message_id", None)
         if message_id is None:
             print(
                 "No message_id found attached to request, make sure middleware is configured correctly")
@@ -141,18 +145,19 @@ def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_
         req_headers = dict((k, v if isinstance(v, list) else [v]) for k, v in req.headers.items())
         config = {"redact_headers": redact_headers, "redact_request_body": redact_request_body, "redact_response_body": redact_response_body}
         set_attributes(
-            req.extensions["monoscope_span"], req.url.host, status_code,
+            span, req.url.host, status_code,
             dict(req.url.params), {},
             req_headers, res_headers, req.method.upper(),
             req.url.path, message_id, url_wildcard or req.url.path, req_body, res_body, errors, config, sdk_type="PythonOutgoing")
 
     def on_response(response):
-      try:
-        response.read()
         res_headers = dict((k, v if isinstance(v, list) else [v]) for k, v in response.headers.items())
+        try:
+            response.read()
+        except Exception as error:
+            record(response.request, response.status_code, res_headers, "", [ATError(error).to_dict()])
+            raise
         record(response.request, response.status_code, res_headers, response.text, [])
-      except Exception as e:
-          pass
 
     client = httpx.Client(event_hooks={'request': [
         on_request], 'response': [on_response]})
@@ -163,10 +168,7 @@ def observe_request(parent_request, url_wildcard=None,redact_headers=[], redact_
         try:
             return send(request, **kwargs)
         except Exception as error:
-            try:
-                record(request, 0, {}, "", [ATError(error).to_dict()])
-            except Exception:
-                pass
+            record(request, 0, {}, "", [ATError(error).to_dict()])
             raise
     client.send = send_and_record_failure
 
